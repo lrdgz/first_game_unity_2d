@@ -15,6 +15,7 @@ public class Player : MonoBehaviour
     [SerializeField] Transform bullletPrefab;
     bool gunLoaded = true;
     [SerializeField] float fireRate = 1;
+    [SerializeField] int health = 10;
 
 
     // Start is called before the first frame update
@@ -48,6 +49,15 @@ public class Player : MonoBehaviour
 
         }
 
+    }
+
+    public void TakeDamage()
+    {
+        health--;
+        if (health <= 0)
+        {
+            //Game Over
+        }
     }
 
     IEnumerator ReloadGun() {
