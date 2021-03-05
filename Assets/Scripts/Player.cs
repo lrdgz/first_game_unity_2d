@@ -16,6 +16,9 @@ public class Player : MonoBehaviour
     bool gunLoaded = true;
     [SerializeField] float fireRate = 1;
     [SerializeField] int health = 10;
+    bool powerShotEnabled;
+    bool invulnerable;
+    [SerializeField] float invulnerableTime = 3;
 
 
     // Start is called before the first frame update
@@ -43,8 +46,10 @@ public class Player : MonoBehaviour
             gunLoaded = false;
             float angle = Mathf.Atan2(facingDirection.y, facingDirection.x) * Mathf.Rad2Deg;
             Quaternion targetRotation = Quaternion.AngleAxis(angle, Vector3.forward);
-            Instantiate(bullletPrefab, transform.position, targetRotation);
-
+            Transform bulletClone = Instantiate(bullletPrefab, transform.position, targetRotation);
+            if (powerShotEnabled) {
+                bulletClone.GetComponent<Bullet>().powerShot = true;
+            } 
             StartCoroutine(ReloadGun());
 
         }
@@ -53,15 +58,46 @@ public class Player : MonoBehaviour
 
     public void TakeDamage()
     {
+
+        if (invulnerable) {
+            return;
+        }
+
+
         health--;
+        invulnerable = true;
+
+        StartCoroutine(MakeVulnerableAgain());
+
         if (health <= 0)
         {
             //Game Over
         }
     }
 
+    IEnumerator MakeVulnerableAgain() {
+        yield return new WaitForSeconds(invulnerableTime);
+        invulnerable = false;
+    }
+
     IEnumerator ReloadGun() {
         yield return new WaitForSeconds(1/fireRate);
         gunLoaded = true;
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.CompareTag("PowerUp")) {
+            switch (collision.GetComponent<PowerUp>().powerUpType) {
+                case PowerUp.PowerUpType.FireRateIncrease:
+                    fireRate++;
+                    break;
+                case PowerUp.PowerUpType.PowerShot:
+                    powerShotEnabled = true;
+                    break;
+            }
+
+            Destroy(collision.gameObject, 01f);
+        }
     }
 }
